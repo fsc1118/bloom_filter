@@ -3,16 +3,16 @@
 
 class BitSet
 {
-    private:
-        long size;
-        char* bytes;
-    public:
-        BitSet(long numBits);
-        bool get(long index);
-        void set(long index);
-        void clear();
-        long capacity();
-    
+private:
+    long size;
+    char *bytes;
+
+public:
+    BitSet(long numBits);
+    bool get(long index);
+    void set(long index);
+    void clear();
+    long capacity();
 };
 
 #endif

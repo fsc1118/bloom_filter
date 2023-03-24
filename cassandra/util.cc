@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <vector>
 
-long abstract_val(long index) {
+long abstract_val(long index)
+{
     long negbit = index >> 63;
     return (index ^ negbit) - negbit;
 }

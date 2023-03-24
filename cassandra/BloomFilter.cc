@@ -3,12 +3,14 @@
 #include "BloomFilter.h"
 #include "util.h"
 #include "Murmurhash.h"
-BloomFilter::BloomFilter(int hashCount, shared_ptr<BitSet> bitSet) {
+BloomFilter::BloomFilter(int hashCount, shared_ptr<BitSet> bitSet)
+{
     this->hashCount = hashCount;
     this->bitSet = bitSet;
 }
 
-void BloomFilter::setIndexes(long base, long inc, int count, long max, long results[]) {
+void BloomFilter::setIndexes(long base, long inc, int count, long max, long results[])
+{
     for (int i = 0; i < count; i++)
     {
         results[i] = abstract_val(base % max);
@@ -16,14 +18,16 @@ void BloomFilter::setIndexes(long base, long inc, int count, long max, long resu
     }
 }
 
-shared_ptr<long[]> BloomFilter::indexes(const char *key, int length) {
-    long* indexes = new long[21];
+shared_ptr<long[]> BloomFilter::indexes(const char *key, int length)
+{
+    long *indexes = new long[21];
     MurmurHash::hash(key, 0, length, 0, indexes);
     setIndexes(indexes[1], indexes[0], hashCount, bitSet->capacity(), indexes);
     return shared_ptr<long[]>(indexes);
 }
 
-void BloomFilter::add(const char *key, int length) {
+void BloomFilter::add(const char *key, int length)
+{
     auto idx = indexes(key, length);
     for (int i = 0; i < hashCount; i++)
     {
@@ -31,7 +35,8 @@ void BloomFilter::add(const char *key, int length) {
     }
 }
 
-bool BloomFilter::isPresent(const char *key, int length) {
+bool BloomFilter::isPresent(const char *key, int length)
+{
     auto idx = indexes(key, length);
     for (int i = 0; i < hashCount; i++)
     {
