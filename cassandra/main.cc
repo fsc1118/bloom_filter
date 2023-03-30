@@ -6,7 +6,8 @@
 #include <string.h>
 #include <set>
 #include <random>
-
+#include <chrono>
+using namespace std::chrono;
 
 char* generateRandomString(int length) {
     char* randomString = new char[length + 1];
@@ -25,8 +26,8 @@ char* generateRandomString(int length) {
 int main()
 { 
     std::set<std::string> set;
-    auto filter = BloomFilterFactory::getFilter(10000, 0.001);
-    for (; set.size()< 10000; ) {
+    auto filter = BloomFilterFactory::getFilter(100000, 0.01);
+    for (; set.size()< 100000; ) {
         // Random string
         char* str = generateRandomString(10);
         std::string s(str);
@@ -44,16 +45,25 @@ int main()
             printf("Error: %s not found in filter\n", it->c_str());
         }
     }
-	int trial = 1000000;
+	int trial = 100000;
 	int i = 0; int fp = 0;
+
+    int64_t t = 0;
+
     while (i < trial) {
     	char* str = generateRandomString(10);
         string s(str);
         if (set.find(s) != set.end()) {delete str; continue;}
-        if (filter->isPresent(str, strlen(str))) {
+        auto start = high_resolution_clock::now();
+        bool isThere = filter->isPresent(str, strlen(str));
+        auto end = high_resolution_clock::now();
+        if (isThere) {
             fp++;
         }
+        auto duration = duration_cast<microseconds>(end - start);
+        t += duration.count();
         i++;
     }
-    printf("%f\n", ((double)fp) / trial);
+    printf("fp rate: %f\n", ((double)fp) / trial);
+    printf("Time: %f\n second", (double)(t) / 1000000);
 }
