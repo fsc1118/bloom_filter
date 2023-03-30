@@ -32,7 +32,6 @@ int main()
         std::string s(str);
         if (set.find(s) != set.end()) {
             delete[] str;
-            delete &s;
             continue;
         }
         set.insert(s);
@@ -50,7 +49,7 @@ int main()
     while (i < trial) {
     	char* str = generateRandomString(10);
         string s(str);
-        if (set.find(s) != set.end()) {delete str; delete &s; continue;}
+        if (set.find(s) != set.end()) {delete str; continue;}
         if (filter->isPresent(str, strlen(str))) {
             fp++;
         }
