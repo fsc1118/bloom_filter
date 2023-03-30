@@ -3,7 +3,6 @@
 #include "BloomFilter.h"
 #include "BloomFilterFactory.h"
 #include <stdio.h>
-
 #include <string.h>
 #include <set>
 #include <random>
@@ -11,29 +10,32 @@
 
 char* generateRandomString(int length) {
     char* randomString = new char[length + 1];
-    static const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     random_device rd;
     mt19937 generator(rd());
-    uniform_int_distribution<> distribution(0, sizeof(charset) - 1);
-
+    uniform_int_distribution<> distribution(0, strlen(charset) - 1);
     for (int i = 0; i < length; i++) {
         randomString[i] = charset[distribution(generator)];
     }
     randomString[length] = '\0'; // null terminate the string
-
     return randomString;
 }
 
 int main()
-{
-    
+{ 
     std::set<std::string> set;
-    auto filter = BloomFilterFactory::getFilter(1000000, 0.01);
-    for (int i = 0; i < 1000; i++) {
+    auto filter = BloomFilterFactory::getFilter(10000, 0.001);
+    for (; set.size()< 10000; ) {
         // Random string
-        char* str = generateRandomString(i);
-        set.insert(str);
+        char* str = generateRandomString(10);
+        std::string s(str);
+        if (set.find(s) != set.end()) {
+            delete[] str;
+            delete &s;
+            continue;
+        }
+        set.insert(s);
         filter->add(str, strlen(str));
     }
     
@@ -43,4 +45,16 @@ int main()
             printf("Error: %s not found in filter\n", it->c_str());
         }
     }
+	int trial = 1000000;
+	int i = 0; int fp = 0;
+    while (i < trial) {
+    	char* str = generateRandomString(10);
+        string s(str);
+        if (set.find(s) != set.end()) {delete str; delete &s; continue;}
+        if (filter->isPresent(str, strlen(str))) {
+            fp++;
+        }
+        i++;
+    }
+    printf("%f\n", ((double)fp) / trial);
 }
