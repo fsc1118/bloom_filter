@@ -1,14 +1,14 @@
+#include <set>
 #include <memory>
+#include <string>
+#include <random>
+#include <string.h>
 #include "BitSet.h"
 #include "BloomFilter.h"
-#include "BloomFilterFactory.h"
-#include <stdio.h>
-#include <string.h>
-#include <set>
-#include <random>
-#include <chrono>
-using namespace std::chrono;
 
+#include <chrono>
+using namespace std;
+using namespace std::chrono;
 char* generateRandomString(int length) {
     char* randomString = new char[length + 1];
 
@@ -22,30 +22,21 @@ char* generateRandomString(int length) {
     randomString[length] = '\0'; // null terminate the string
     return randomString;
 }
-
 int main()
-{ 
-    std::set<std::string> set;
-    auto filter = BloomFilterFactory::getFilter(100000, 0.01);
-    for (; set.size()< 100000; ) {
-        // Random string
+{
+    BloomFilter bf(6, shared_ptr<BitSet>(new BitSet((1 << 17) << 9 << 3)));
+    set<string> set;
+    for (int i = 0; i < 100000; i++) {
         char* str = generateRandomString(10);
         std::string s(str);
         if (set.find(s) != set.end()) {
             delete[] str;
             continue;
         }
+        bf.add(str, strlen(str));
         set.insert(s);
-        filter->add(str, strlen(str));
     }
-    
-    // Iterate through the set and check if the filter returns true
-    for (auto it = set.begin(); it != set.end(); it++) {
-        if (!filter->isPresent(it->c_str(), it->length())) {
-            printf("Error: %s not found in filter\n", it->c_str());
-        }
-    }
-	int trial = 100000;
+    int trial = 100000000;
 	int i = 0; int fp = 0;
 
     int64_t t = 0;
@@ -53,9 +44,9 @@ int main()
     while (i < trial) {
     	char* str = generateRandomString(10);
         string s(str);
-        if (set.find(s) != set.end()) {delete str; continue;}
+        if (set.find(s) != set.end()) {delete[] str; continue;}
         auto start = high_resolution_clock::now();
-        bool isThere = filter->isPresent(str, strlen(str));
+        bool isThere = bf.isPresent(str, strlen(str));
         auto end = high_resolution_clock::now();
         if (isThere) {
             fp++;
@@ -63,7 +54,9 @@ int main()
         auto duration = duration_cast<microseconds>(end - start);
         t += duration.count();
         i++;
+        delete [] str;
     }
     printf("fp rate: %f\n", ((double)fp) / trial);
-    printf("Time: %f\n second", (double)(t) / 1000000);
+    printf("Time: %f\n second", (double)(t) / trial);
+    return 0;
 }

@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <stdlib.h>
 #include "BloomFilter.h"
-#include "Hash.h"
+#include "Murmurhash.h"
 #include "FastRange32.h"
 
 #define PREFETCH(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
@@ -48,12 +48,16 @@ void BloomFilter::AddHash(uint32_t hash)
 
 void BloomFilter::add(const char *key, int len)
 {
-    AddHash(Hash::BloomHash(key, len, 0xbc9f1d34));
+    long *indexes = new long[2];
+    MurmurHash::hash(key, 0, len, 0, indexes);
+    AddHash(indexes[0]);
 }
 
 bool BloomFilter::isPresent(const char *key, int len)
 {
-    return (MayContainHash(Hash::BloomHash(key, len, 0xbc9f1d34)));
+    long *indexes = new long[2];
+    MurmurHash::hash(key, 0, len, 0, indexes);
+    return (MayContainHash(indexes[0]));
 }
 
 BloomFilter::BloomFilter(uint32_t total_bits,

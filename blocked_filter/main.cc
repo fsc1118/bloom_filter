@@ -1,16 +1,17 @@
-#include <set>
-#include <string>
-#include <random>
-#include <string.h>
+#include <memory>
 #include "BloomFilter.h"
-#include "assert.h"
+#include "BloomFilterFactory.h"
+#include <stdio.h>
+#include <string.h>
+#include <set>
+#include <random>
 #include <chrono>
-using namespace std;
 using namespace std::chrono;
+
 char* generateRandomString(int length) {
     char* randomString = new char[length + 1];
 
-    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789[]-=./!@#$%^&*()_+{}|:<>?";
     random_device rd;
     mt19937 generator(rd());
     uniform_int_distribution<> distribution(0, strlen(charset) - 1);
@@ -20,21 +21,31 @@ char* generateRandomString(int length) {
     randomString[length] = '\0'; // null terminate the string
     return randomString;
 }
+
 int main()
 {
-    BloomFilter bf(((1 << 17) << 9 << 3), 6);
-    set<string> set;
-    for (int i = 0; i < 100000; i++) {
+    std::set<std::string> set;
+    auto filter = BloomFilterFactory::createFilter_benchmark();
+    for (; set.size() < 100000; ) {
+        // Random string
         char* str = generateRandomString(10);
         std::string s(str);
         if (set.find(s) != set.end()) {
             delete[] str;
             continue;
         }
-        bf.add(str, strlen(str));
         set.insert(s);
+        filter->add(str, strlen(str));
     }
-    int trial = 100000000;
+
+    // Iterate through the set and check if the filter returns true
+    for (auto it = set.begin(); it != set.end(); it++) {
+        if (!filter->isPresent(it->c_str(), it->length())) {
+            printf("Error: %s not found in filter\n", it->c_str());
+            exit(1);
+        }
+    }
+	int trial = 100000000;
 	int i = 0; int fp = 0;
 
     int64_t t = 0;
@@ -44,7 +55,7 @@ int main()
         string s(str);
         if (set.find(s) != set.end()) {delete[] str; continue;}
         auto start = high_resolution_clock::now();
-        bool isThere = bf.isPresent(str, strlen(str));
+        bool isThere = filter->isPresent(str, strlen(str));
         auto end = high_resolution_clock::now();
         if (isThere) {
             fp++;
@@ -56,5 +67,4 @@ int main()
     }
     printf("fp rate: %f\n", ((double)fp) / trial);
     printf("Time: %f\n second", (double)(t) / trial);
-    return 0;
 }
