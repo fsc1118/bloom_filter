@@ -1,17 +1,26 @@
-CC=g++ # the compiler to use
-CFLAGS=-c -O2 # flags to pass to the compiler for compiling source files
-LDFLAGS= # flags to pass to the linker for linking object files
-SOURCES=BloomFilter.cc main.cc Murmurhash.cc # the source files
-OBJECTS=$(SOURCES:.cc=.o) # the object files to build
-EXECUTABLE=bloom_filter # the name of the executable to build
+CXX = g++
+CXXFLAGS = -std=c++11 -O2
 
-all: $(SOURCES) $(EXECUTABLE)
+SRCDIR = .
+OBJDIR = obj
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+SRCFILES = BloomFilter.cc main.cc Murmurhash.cc
+OBJFILES = $(patsubst %.cc,$(OBJDIR)/%.o,$(SRCFILES))
 
-.cc.o:
-	$(CC) $(CFLAGS) $< -o $@
+TARGET = bloom_filter
+
+.PHONY: all clean
+
+all: $(TARGET)
+
+$(TARGET): $(OBJFILES)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cc | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR):
+	mkdir -p $@
 
 clean:
-	rm -f $(OBJECTS) $(EXECUTABLE)
+	rm -rf $(OBJDIR) $(TARGET)

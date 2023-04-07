@@ -22,9 +22,9 @@ char* generateRandomString(int length) {
 }
 int main()
 {
-    BloomFilter bf(((1 << 17) << 9 << 3), 6);
+    BloomFilter bf(((1 << 17) << 9), 6);
     set<string> set;
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < 1000000; i++) {
         char* str = generateRandomString(10);
         std::string s(str);
         if (set.find(s) != set.end()) {
@@ -34,7 +34,7 @@ int main()
         bf.add(str, strlen(str));
         set.insert(s);
     }
-    int trial = 100000000;
+    int trial = 100000;
 	int i = 0; int fp = 0;
 
     int64_t t = 0;

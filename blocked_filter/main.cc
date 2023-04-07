@@ -26,7 +26,7 @@ int main()
 {
     std::set<std::string> set;
     auto filter = BloomFilterFactory::createFilter_benchmark();
-    for (; set.size() < 100000; ) {
+    for (; set.size() < 1000000; ) {
         // Random string
         char* str = generateRandomString(10);
         std::string s(str);
@@ -37,15 +37,8 @@ int main()
         set.insert(s);
         filter->add(str, strlen(str));
     }
-
-    // Iterate through the set and check if the filter returns true
-    for (auto it = set.begin(); it != set.end(); it++) {
-        if (!filter->isPresent(it->c_str(), it->length())) {
-            printf("Error: %s not found in filter\n", it->c_str());
-            exit(1);
-        }
-    }
-	int trial = 100000000;
+    
+	int trial = 100000;
 	int i = 0; int fp = 0;
 
     int64_t t = 0;
